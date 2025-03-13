@@ -71,7 +71,7 @@ class BatcherXParticleEmitterLogic {
 
             up = glm::normalize(glm::cross(forward, right));
 
-            // TODO: replace with functions in transfomr
+            // TODO: replace with functions in transform for billboarding
             // this makes it billboarded
             glm::mat4 rotation_matrix = glm::mat4(1.0f);
             rotation_matrix[0] = glm::vec4(right, 0.0f);
@@ -79,9 +79,9 @@ class BatcherXParticleEmitterLogic {
             rotation_matrix[2] = glm::vec4(-forward, 0.0f); // We negate the direction for correct facing
 
             // TODO: bad we only account for the position of the parent transform as of right now.
-            glm::mat4 transform = glm::translate(glm::mat4(1.0f), curr_particle.transform.position);
+            glm::mat4 transform = glm::translate(glm::mat4(1.0f), curr_particle.transform.get_translation());
             transform *= rotation_matrix;
-            transform = glm::scale(transform, curr_particle.transform.scale);
+            transform = glm::scale(transform, curr_particle.transform.get_scale());
 
             std::pair<int, int> ep_id_pair(particle_emitter.id, curr_particle.id);
             auto tig = particle_id_to_tig[ep_id_pair];
