@@ -5,6 +5,12 @@
 
 #include "sbpt_generated_includes.hpp"
 
+struct pair_hash {
+    std::size_t operator()(const std::pair<int, int> &p) const {
+        return std::hash<int>{}(p.first) ^ (std::hash<int>{}(p.second) * 31);
+    }
+};
+
 class BatcherXParticleEmitterLogic {
   public:
     TexturePacker &texture_packer;
@@ -15,46 +21,34 @@ class BatcherXParticleEmitterLogic {
     draw_info::TransformedIVPTPGroup smoke_tig_for_copying;
 
     BatcherXParticleEmitterLogic(TexturePacker &texture_packer, BoundedUniqueIDGenerator &ltw_object_id_generator,
-                                 Batcher &batcher)
-        : texture_packer(texture_packer), ltw_object_id_generator(ltw_object_id_generator), batcher(batcher) {
+                                 Batcher &batcher, ResourcePath &resource_path);
 
-        // TODO: need to use gfp here?
-        auto smoke_filepath = "assets/smoke_64px.png";
-        auto smoke_st = texture_packer.get_packed_texture_sub_texture(smoke_filepath);
+    using EmitterAndParticleIDPair = std::pair<int, int>;
+    std::unordered_map<EmitterAndParticleIDPair, draw_info::TransformedIVPTPGroup, pair_hash> particle_id_to_tig;
 
-        auto vertices = generate_square_vertices(0, 0, 0.5);
-        auto indices = generate_rectangle_indices();
-
-        draw_info::IVPTexturePacked smoke_ivptp(
-            indices, vertices, smoke_st.texture_coordinates, smoke_st.texture_coordinates,
-            smoke_st.packed_texture_index, smoke_st.packed_texture_bounding_box_index, smoke_filepath,
-            batcher.texture_packer_cwl_v_transformation_ubos_1024_shader_batcher.object_id_generator.get_id());
-
-        smoke_tig_for_copying = draw_info::TransformedIVPTPGroup({smoke_ivptp}, -1);
-    }
-
-    std::unordered_map<int, draw_info::TransformedIVPTPGroup> particle_id_to_tig;
-    void on_particle_death(int particle_id) {
-
-        p(std::format("deleting particle: {}", particle_id));
-        auto particle_tig = particle_id_to_tig[particle_id];
+    void on_particle_death(int emitter_id, int particle_id) {
+        std::pair<int, int> ep_id_pair(emitter_id, particle_id);
+        /*p(std::format("deleting particle: {}", ep_id_pair));*/
+        // TODO: eventually turn this into a batcher function
+        auto particle_tig = particle_id_to_tig[ep_id_pair];
         ltw_object_id_generator.reclaim_id(particle_tig.id);
 
         for (const auto &ivptp : particle_tig.ivptps) {
             batcher.texture_packer_cwl_v_transformation_ubos_1024_shader_batcher.delete_object(ivptp.id);
         }
 
-        particle_id_to_tig.erase(particle_id);
+        particle_id_to_tig.erase(ep_id_pair);
     }
 
-    void on_particle_spawn(int particle_id) {
-        p(std::format("spawning particle: {}", particle_id));
+    void on_particle_spawn(int emitter_id, int particle_id) {
+        std::pair<int, int> ep_id_pair(emitter_id, particle_id);
+        /*p(std::format("spawning particle: {}", particle_id));*/
         auto smoke_tig_copy = smoke_tig_for_copying;
         smoke_tig_copy.regenerate_ids(
             ltw_object_id_generator,
             batcher.texture_packer_cwl_v_transformation_ubos_1024_shader_batcher.object_id_generator);
 
-        particle_id_to_tig[particle_id] = smoke_tig_copy;
+        particle_id_to_tig[ep_id_pair] = smoke_tig_copy;
     }
 
     void draw_particles(ParticleEmitter &particle_emitter, FPSCamera &fps_camera, double delta_time,
@@ -85,12 +79,12 @@ class BatcherXParticleEmitterLogic {
             rotation_matrix[2] = glm::vec4(-forward, 0.0f); // We negate the direction for correct facing
 
             // TODO: bad we only account for the position of the parent transform as of right now.
-            glm::mat4 transform =
-                glm::translate(glm::mat4(1.0f), curr_particle.transform.position + particle_emitter.transform.position);
+            glm::mat4 transform = glm::translate(glm::mat4(1.0f), curr_particle.transform.position);
             transform *= rotation_matrix;
             transform = glm::scale(transform, curr_particle.transform.scale);
 
-            auto tig = particle_id_to_tig[curr_particle.id];
+            std::pair<int, int> ep_id_pair(particle_emitter.id, curr_particle.id);
+            auto tig = particle_id_to_tig[ep_id_pair];
 
             batcher.texture_packer_cwl_v_transformation_ubos_1024_shader_batcher.ltw_matrices[tig.id] = transform;
 
