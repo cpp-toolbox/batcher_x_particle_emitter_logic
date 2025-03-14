@@ -32,7 +32,7 @@ void BatcherXParticleEmitterLogic::on_particle_death(int emitter_id, int particl
     }
 
     particle_id_to_tig.erase(ep_id_pair);
-    pf("just deleted tig for {},{}", ep_id_pair.first, ep_id_pair.second);
+    /*pf("just deleted tig for {},{}", ep_id_pair.first, ep_id_pair.second);*/
 }
 
 void BatcherXParticleEmitterLogic::on_particle_spawn(int emitter_id, int particle_id) {
@@ -44,7 +44,7 @@ void BatcherXParticleEmitterLogic::on_particle_spawn(int emitter_id, int particl
         batcher.texture_packer_cwl_v_transformation_ubos_1024_shader_batcher.object_id_generator);
 
     particle_id_to_tig[ep_id_pair] = smoke_tig_copy;
-    pf("just created tig for {},{}", ep_id_pair.first, ep_id_pair.second);
+    /*pf("just created tig for {},{}", ep_id_pair.first, ep_id_pair.second);*/
 }
 
 // TODO: instead of this we need to do the following:
@@ -86,7 +86,7 @@ void BatcherXParticleEmitterLogic::draw_particles(ParticleEmitter &particle_emit
         // we assume that it exists in here why?
         auto tig = particle_id_to_tig[ep_id_pair];
 
-        pf("rendering a smoke particle with id {},{} with ltw id: {}", ep_id_pair.first, ep_id_pair.second, tig.id);
+        /*pf("rendering a smoke particle with id {},{} with ltw id: {}", ep_id_pair.first, ep_id_pair.second, tig.id);*/
         batcher.texture_packer_cwl_v_transformation_ubos_1024_shader_batcher.ltw_matrices[tig.id] = transform;
 
         for (const auto &ivptp : tig.ivptps) {
