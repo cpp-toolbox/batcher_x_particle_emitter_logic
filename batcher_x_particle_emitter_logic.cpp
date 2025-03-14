@@ -47,6 +47,12 @@ void BatcherXParticleEmitterLogic::on_particle_spawn(int emitter_id, int particl
     pf("just created tig for {},{}", ep_id_pair.first, ep_id_pair.second);
 }
 
+// TODO: instead of this we need to do the following:
+// we have a collection of particle emitters, instead of passing in each one we operate on all at once,
+// we also have an update rate inside of here instead of in each particle emitter, then
+// when the rate limiter tells us we collect all particles and sort them once, and then we keep those sorted particles
+// this happens in a class called something like ParitcleEmitterCollection
+// temp fix is to lower the update rate of particles
 void BatcherXParticleEmitterLogic::draw_particles(ParticleEmitter &particle_emitter, FPSCamera &fps_camera,
                                                   double delta_time, glm::mat4 projection, glm::mat4 view) {
 
