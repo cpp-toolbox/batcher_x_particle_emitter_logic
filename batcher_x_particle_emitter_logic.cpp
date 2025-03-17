@@ -87,15 +87,7 @@ void BatcherXParticleEmitterLogic::draw_particles(ParticleEmitter &particle_emit
         auto tig = particle_id_to_tig[ep_id_pair];
 
         /*pf("rendering a smoke particle with id {},{} with ltw id: {}", ep_id_pair.first, ep_id_pair.second, tig.id);*/
-        batcher.texture_packer_cwl_v_transformation_ubos_1024_shader_batcher.ltw_matrices[tig.id] = transform;
 
-        for (const auto &ivptp : tig.ivptps) {
-            std::vector<unsigned int> ltw_mat_idxs(ivptp.xyz_positions.size(), tig.id);
-            std::vector<int> ptis(ivptp.xyz_positions.size(), ivptp.packed_texture_index);
-            std::vector<int> ptbbis(ivptp.xyz_positions.size(), ivptp.packed_texture_bounding_box_index);
-            batcher.texture_packer_cwl_v_transformation_ubos_1024_shader_batcher.queue_draw(
-                ivptp.id, ivptp.indices, ltw_mat_idxs, ptis, ivptp.packed_texture_coordinates, ptbbis,
-                ivptp.xyz_positions, false);
-        }
+        batcher.texture_packer_cwl_v_transformation_ubos_1024_shader_batcher.queue_draw(tig, false, transform);
     }
 }
