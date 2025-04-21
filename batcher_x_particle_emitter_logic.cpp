@@ -20,6 +20,8 @@ BatcherXParticleEmitterLogic::BatcherXParticleEmitterLogic(TexturePacker &textur
     smoke_tig_for_copying = draw_info::TransformedIVPTPGroup({smoke_ivptp}, -1);
 }
 
+// NOTE: when a particle dies, we need to reclaim the graphical ids for
+// the deleted things.
 void BatcherXParticleEmitterLogic::on_particle_death(int emitter_id, int particle_id) {
     std::pair<int, int> ep_id_pair(emitter_id, particle_id);
     /*p(std::format("deleting particle: {}", ep_id_pair));*/
@@ -35,6 +37,9 @@ void BatcherXParticleEmitterLogic::on_particle_death(int emitter_id, int particl
     /*pf("just deleted tig for {},{}", ep_id_pair.first, ep_id_pair.second);*/
 }
 
+// NOTE:  that particle emitters are pure logic/data, and don't know anything about graphics,
+// here whenever a particle is spawned we create a new smoke tig for each new particle
+// an
 void BatcherXParticleEmitterLogic::on_particle_spawn(int emitter_id, int particle_id) {
     std::pair<int, int> ep_id_pair(emitter_id, particle_id);
     /*p(std::format("spawning particle: {}", particle_id));*/

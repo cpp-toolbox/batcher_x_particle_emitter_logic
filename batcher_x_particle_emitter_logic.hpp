@@ -11,6 +11,7 @@ struct pair_hash {
     }
 };
 
+// NOTE: this system wraps around multiple particle emitters via the unordered map
 class BatcherXParticleEmitterLogic {
   public:
     TexturePacker &texture_packer;
